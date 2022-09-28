@@ -28,14 +28,24 @@ class HH(Engine):
     url = "https://api.hh.ru/vacancies"
 
     @classmethod
-    def get_request(cls, list_of_vacancies: list = [], search_text: str = "", count_of_vacancies: int = 1000, currency: str = "RUR") -> list:
+    def get_request(cls, list_of_vacancies: list = [], search_text: str = "", count_of_vacancies: int = 1000,
+                    currency: str = "RUR") -> list:
+        """
+        Принимает и обрабатывает информацию из API hh.ru
+        :param list_of_vacancies: список для записи результатов
+        :param search_text: искомая вакансия
+        :param count_of_vacancies: кол-во вакансий
+        :param currency: валюта
+        :return: список с обработанной информацией
+        """
         for page in range(int(count_of_vacancies / 20)):
             data = requests.get(cls.url, {"text": search_text, "page": page, "only_with_salary": "true"})
             if data.status_code != 200:
                 break
             for item in data.json()["items"]:
                 if currency == "any" or item["salary"]["currency"] == currency:
-                    list_of_vacancies.append(Vacancy(item["name"], item["alternate_url"], item["snippet"], item["salary"]))
+                    list_of_vacancies.append(
+                        Vacancy(item["name"], item["alternate_url"], item["snippet"], item["salary"]))
         return list_of_vacancies
 
 
@@ -44,6 +54,14 @@ class Superjob(Engine):
 
     @classmethod
     def get_request(cls, list_of_vacancies: list = [], search_text: str = "") -> list:
+        """
+        Принимает и обрабатывает информацию с сайта superjob
+        :param list_of_vacancies: список для записи результатов
+        :param search_text: искомая вакансия
+        :param count_of_vacancies: кол-во вакансий
+        :param currency: валюта
+        :return: список с обработанной информацией
+        """
         for i in range(50):
             data = requests.get(cls.url, {"keywords": search_text, "page": i + 1})
             soup = BeautifulSoup(data.text, "lxml")
@@ -51,9 +69,11 @@ class Superjob(Engine):
             for item in vacancy_blocks:
                 name_vacancy = item.find("span", class_="_9fIP1 _249GZ _1jb_5 QLdOc").text
                 link_vacancy = "https://spb.superjob.ru/" + item.find("a").get("href")
-                salary_vacancy = {"from": item.find("span", class_="_2eYAG _1nqY_ _249GZ _1jb_5 _1dIgi").text, "currency": "RUR", "to": None}
+                salary_vacancy = {"from": item.find("span", class_="_2eYAG _1nqY_ _249GZ _1jb_5 _1dIgi").text,
+                                  "currency": "RUR", "to": None}
                 salary_vacancy["from"] = salary_vacancy["from"].replace(" ", " ")
-                snippet_vacancy = {"responsibility": item.find("div", class_="_2d_Of _2J-3z _3B5DQ").text, "requirement": None}
+                snippet_vacancy = {"responsibility": item.find("div", class_="_2d_Of _2J-3z _3B5DQ").text,
+                                   "requirement": None}
                 list_of_vacancies.append(Vacancy(name_vacancy, link_vacancy, snippet_vacancy, salary_vacancy))
             if '<span class="_115dd">Дальше</span>' not in data.text:
                 break
