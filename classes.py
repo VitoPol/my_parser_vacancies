@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 import requests
 from bs4 import BeautifulSoup
-import utils
 
 
 class Vacancy:
