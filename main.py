@@ -1,16 +1,17 @@
 import requests
 import json
+from utils import *
 from classes import *
 
 
-# list_ = HH.get_request(search_text="python")
-# for i in list_:
-#     print(i, '\n')
-# print(len(list_))
+def main():
+    list_of_vacancies = []
+    search_text = input("Введите искомую профессию: ")
+    HH.get_request(list_of_vacancies, search_text=search_text)
+    Superjob.get_request(list_of_vacancies, search_text=search_text)
+    save_to_file(list_of_vacancies)
+    test()
 
 
-data = Superjob.get_request(search_text="python")
-for i in data:
-    print(i, '\n')
-print(len(data))
-
+if __name__ == "__main__":
+    main()
