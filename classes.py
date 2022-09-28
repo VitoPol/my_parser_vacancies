@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 import requests
-
+from bs4 import BeautifulSoup
 import utils
 
 
@@ -28,17 +28,35 @@ class Engine(ABC):
 class HH(Engine):
     url = "https://api.hh.ru/vacancies"
 
-    def get_request(self, search_text: str = "", count_of_vacancies: int = 1000) -> list:
+    @classmethod
+    def get_request(cls, search_text: str = "", count_of_vacancies: int = 1000, currency: str = "RUR") -> list:
         all_vacancies = []
         for page in range(int(count_of_vacancies / 20)):
-            data = requests.get(self.url, {"text": search_text, "page": page, "only_with_salary": "true"})
+            data = requests.get(cls.url, {"text": search_text, "page": page, "only_with_salary": "true"})
             if data.status_code != 200:
                 break
             for item in data.json()["items"]:
-                all_vacancies.append(Vacancy(item["name"], item["alternate_url"], item["snippet"], item["salary"]))
+                if currency == "any" or item["salary"]["currency"] == currency:
+                    all_vacancies.append(Vacancy(item["name"], item["alternate_url"], item["snippet"], item["salary"]))
         return all_vacancies
 
 
 class Superjob(Engine):
-    def get_request(self):
-        pass
+    url = "https://spb.superjob.ru/vacancy/search/"
+
+    @classmethod
+    def get_request(cls, search_text: str = ""):
+        all_vacancies = []
+        for i in range(50):
+            data = requests.get(cls.url, {"keywords": search_text, "page": i + 1})
+            soup = BeautifulSoup(data.text, "lxml")
+            vacancie_blocks = soup.find_all("div", class_="_2lp1U _2J-3z _3B5DQ")
+            for item in vacancie_blocks:
+                name_vacancy = item.find("span", class_="_9fIP1 _249GZ _1jb_5 QLdOc").text
+                link_vacancy = "https://spb.superjob.ru/" + item.find("a").get("href")
+                salary_vacancy = {"from": item.find("span", class_="_2eYAG _1nqY_ _249GZ _1jb_5 _1dIgi").text, "currency": "RUR", "to": None}
+                snippet_vacancy = {"responsibility": item.find("div", class_="_2d_Of _2J-3z _3B5DQ").text, "requirement": None}
+                all_vacancies.append(Vacancy(name_vacancy, link_vacancy, snippet_vacancy, salary_vacancy))
+            if '<span class="_115dd">Дальше</span>' not in data.text:
+                break
+        return all_vacancies
