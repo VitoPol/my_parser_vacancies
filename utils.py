@@ -1,5 +1,5 @@
 from re import search
-from typing import Iterator
+from random import sample
 
 
 def save_to_file(list_of_vacancies: list) -> None:
@@ -46,6 +46,17 @@ def get_top_salaries(list_of_vacancies: list, count: int = 10) -> list:
     top_list = sorted(list_of_vacancies, key=get_salary_text, reverse=True)
     count = min(count, len(top_list))
     return top_list[:count]
+
+
+def get_random_vacancy(list_of_vacancies: list, count: int = 10) -> list:
+    """
+    выводит указанное количество случайных вакансий
+    :param list_of_vacancies: список вакансий
+    :param count: кол-во возвращаемых элементов
+    :return: список случайных вакансий
+    """
+    rand_list = sample(list_of_vacancies, count)
+    return rand_list
 
 
 def print_list(list_: list) -> None:

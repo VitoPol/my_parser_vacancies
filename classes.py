@@ -38,8 +38,8 @@ class HH(Engine):
         :param currency: валюта
         :return: список с обработанной информацией
         """
-        for page in range(int(count_of_vacancies / 20)):
-            data = requests.get(cls.url, {"text": search_text, "page": page, "only_with_salary": "true"})
+        for page in range(int(count_of_vacancies / 100)):
+            data = requests.get(cls.url, {"text": search_text, "page": page, "only_with_salary": "true", "per_page": 100})
             if data.status_code != 200:
                 break
             for item in data.json()["items"]:
